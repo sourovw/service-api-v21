@@ -1,0 +1,235 @@
+﻿using EPS_Service_API.Repositories;
+using EPS_Service_API.Model;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using EPS_Service_API.API.Repositories;
+using EPS_Service_API.Utility;
+using Microsoft.AspNetCore.Authorization;
+
+namespace EPS_Service_API.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class TransactionAccountsOfCustomerController : ControllerBase
+    {
+
+        private SecurityHelper _securityHelper;
+        private ITransactionAccountsOfCustomerRepository TransactionAccountsOfCustomerRepository;
+        public TransactionAccountsOfCustomerController(ITransactionAccountsOfCustomerRepository TransactionAccountsOfCustomerRepository, SecurityHelper securityHelper)
+        {
+            this.TransactionAccountsOfCustomerRepository = TransactionAccountsOfCustomerRepository;
+            _securityHelper = securityHelper;
+        }
+
+        [Authorize]
+        [HttpGet("{id:int}")] //For Get List of Accounts in My Account of Web site
+        public async Task<IActionResult> AccountList_GetByCusID(int id)
+        {
+            string hash = Request.Headers["x-hash"].ToString(); // Check if the hash is valid
+
+            objTransAccCus _objResponseModel = new objTransAccCus();
+            try
+            {
+                var result = await TransactionAccountsOfCustomerRepository.AccountList_GetByCusID(id);
+
+                if (result.Count == 0)
+                {
+                    _objResponseModel.TransactionAccountsOfCustomerModel = result;
+                    _objResponseModel.StatusCode = 1;
+                    _objResponseModel.ErrorDescription = "Successful Data Load- No Data found";
+                    _objResponseModel.APIVersion = "0.1";
+
+                }
+                else
+                {
+                    _objResponseModel.TransactionAccountsOfCustomerModel = result;
+                    _objResponseModel.StatusCode = 0;
+                    _objResponseModel.ErrorDescription = "Successful Data Load";
+                    _objResponseModel.APIVersion = "0.1";
+                }
+                return Created("Result", _objResponseModel);
+            }
+            catch (Exception ex)
+            {
+                string errorDescription_ = ex.Message.ToString();
+                _objResponseModel.TransactionAccountsOfCustomerModel = "";
+                _objResponseModel.StatusCode = 1;
+                _objResponseModel.ErrorDescription = errorDescription_;
+                _objResponseModel.APIVersion = "0.1";
+                return Created("Result", _objResponseModel);
+            }
+
+
+        }
+
+        [Authorize]
+        [HttpPut("{id:int}")] //For Active/Inactive of Accounts in My Account of Web site
+        public async Task<IActionResult> AccountsActiveInactive_byCustomer(int id, [FromBody] AccountStatus_UpdateModel ASU)
+        {
+            objStatusOfOperation _objResponseModel = new objStatusOfOperation();
+
+            try
+            {
+                string hash = Request.Headers["x-hash"].ToString(); // Check if the hash is valid
+
+
+
+                if (id != ASU.CustomerId)
+                {
+                    _objResponseModel.StatusCode = 1;
+                    _objResponseModel.ErrorDescription = "User Id mismatch.";
+                    _objResponseModel.APIVersion = "0.1";
+                    return Created("Result", _objResponseModel);
+                }
+
+                
+                var updatedStatus = await TransactionAccountsOfCustomerRepository.AccountsActiveInactive_byCustomer(ASU);
+
+                if (updatedStatus == "Disabled")
+                {
+                    _objResponseModel.StatusCode = 0;
+                    _objResponseModel.ErrorDescription = $"Account Successfully Disabled";
+                    _objResponseModel.APIVersion = "0.1";  
+                }
+
+                else if(updatedStatus == "Enabled")
+                {
+                    _objResponseModel.StatusCode = 0;
+                    _objResponseModel.ErrorDescription = $"Account Successfully Enabled";
+                    _objResponseModel.APIVersion = "0.1";
+                }
+
+                else
+                {
+                    _objResponseModel.StatusCode = 1;
+                    _objResponseModel.ErrorDescription = $"Failed to Change Status!";
+                    _objResponseModel.APIVersion = "0.1";
+                }
+
+                return Created("Result", _objResponseModel);
+
+
+
+            }
+
+
+            catch (Exception ex)
+            {
+                string errorDescription_ = ex.Message.ToString();
+                _objResponseModel.StatusCode = 1;
+                _objResponseModel.ErrorDescription = errorDescription_;
+                _objResponseModel.APIVersion = "0.1";
+                return Created("Result", _objResponseModel);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("{id:int}/NId")] //For Get List of Accounts in Account Status of Web site //Taka Grohoner Account Poriborton Account List
+        public async Task<IActionResult> AccountStatus_AccountList_Get(int id,string NId="")
+        {
+            string hash = Request.Headers["x-hash"].ToString(); // Check if the hash is valid
+
+            objAccStatCus _objResponseModel = new objAccStatCus();
+            try
+            {
+                var result = await TransactionAccountsOfCustomerRepository.AccountStatus_AccountList_Get(id);
+
+                if (result.Count == 0)
+                {
+                    _objResponseModel.AccountsStatusAccountInfoModel = result;
+                    _objResponseModel.StatusCode = 1;
+                    _objResponseModel.ErrorDescription = "Successful Data Load- No Data found";
+                    _objResponseModel.APIVersion = "0.1";
+
+                }
+                else
+                {
+                    _objResponseModel.AccountsStatusAccountInfoModel = result;
+                    _objResponseModel.StatusCode = 0;
+                    _objResponseModel.ErrorDescription = "Successful Data Load";
+                    _objResponseModel.APIVersion = "0.1";
+                }
+                return Created("Result", _objResponseModel);
+            }
+            catch (Exception ex)
+            {
+                string errorDescription_ = ex.Message.ToString();
+                _objResponseModel.AccountsStatusAccountInfoModel = "";
+                _objResponseModel.StatusCode = 1;
+                _objResponseModel.ErrorDescription = errorDescription_;
+                _objResponseModel.APIVersion = "0.1";
+                return Created("Result", _objResponseModel);
+            }
+
+
+        }
+
+
+        [Authorize]
+        [HttpPut("{id:int}/AccountID")] //For Set Account as Default in Account Status of Web site ////Taka Grohoner Account Poriborton
+        public async Task<IActionResult> AccountsDefaultSelection_byCustomer(int id,int AccountID, [FromBody] AccountStatus_UpdateModel ASU)
+        {
+            objStatusOfOperation _objResponseModel = new objStatusOfOperation();
+
+            try
+            {
+                string hash = Request.Headers["x-hash"].ToString(); // Check if the hash is valid
+
+
+
+                if (id != ASU.CustomerId)
+                {
+                    _objResponseModel.StatusCode = 1;
+                    _objResponseModel.ErrorDescription = "User Id mismatch.";
+                    _objResponseModel.APIVersion = "0.1";
+                    return Created("Result", _objResponseModel);
+                }
+
+
+                var updatedStatus = await TransactionAccountsOfCustomerRepository.AccountsDefaultSelection_byCustomer(ASU);
+
+                if (updatedStatus == "Default")
+                {
+                    _objResponseModel.StatusCode = 0;
+                    _objResponseModel.ErrorDescription = $"Account set as Default";
+                    _objResponseModel.APIVersion = "0.1";
+                }
+
+                else if (updatedStatus == "RemovedDefault")
+                {
+                    _objResponseModel.StatusCode = 0;
+                    _objResponseModel.ErrorDescription = $"Account Removed from Default";
+                    _objResponseModel.APIVersion = "0.1";
+                }
+
+                else
+                {
+                    _objResponseModel.StatusCode = 1;
+                    _objResponseModel.ErrorDescription = $"Failed to Change Status!";
+                    _objResponseModel.APIVersion = "0.1";
+                }
+
+                return Created("Result", _objResponseModel);
+
+
+
+            }
+
+
+            catch (Exception ex)
+            {
+                string errorDescription_ = ex.Message.ToString();
+                _objResponseModel.StatusCode = 1;
+                _objResponseModel.ErrorDescription = errorDescription_;
+                _objResponseModel.APIVersion = "0.1";
+                return Created("Result", _objResponseModel);
+            }
+        }
+
+
+    }
+}

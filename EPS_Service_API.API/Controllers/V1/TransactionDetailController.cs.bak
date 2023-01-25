@@ -1,0 +1,169 @@
+﻿using EPS_Service_API.Repositories;
+using EPS_Service_API.Model;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using EPS_Service_API.API.Repositories;
+using EPS_Service_API.Utility;
+using Microsoft.AspNetCore.Authorization;
+
+namespace EPS_Service_API.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class TransactionDetailController : ControllerBase
+    {
+        private SecurityHelper _securityHelper;
+        private ITransactionDetailRepository transactionDetailRepository;
+        public TransactionDetailController(ITransactionDetailRepository transactionDetailRepository, SecurityHelper securityHelper)
+        {
+            this.transactionDetailRepository = transactionDetailRepository;
+            _securityHelper = securityHelper;
+        }
+
+
+
+        // TransactionDetailGetbyCustomerID  //For Bank Statement of Web Site
+        [Authorize]
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> TransactionDetailGetbyCustomerID(int id)
+        {
+            string hash = Request.Headers["x-hash"].ToString(); // Check if the hash is valid
+
+            objTransactionDetail _objResponseModel = new objTransactionDetail();
+            try
+            {
+                var result_Rec_Money = await transactionDetailRepository.Transaction_ReceiveMoneyList_GetByID(id);
+                var result_Send_Money = await transactionDetailRepository.Transaction_SendMoneyList_GetByID(id);
+
+                if (result_Rec_Money.Count == 0 && result_Send_Money.Count == 0)
+                {
+                    _objResponseModel.ReceiveMoneyList = result_Rec_Money;
+                    _objResponseModel.SendMoneyList = result_Send_Money;
+
+                    _objResponseModel.StatusCode = 1;
+                    _objResponseModel.ErrorDescription = "Successful Data Load- No Data found";
+                    _objResponseModel.APIVersion = "0.1";
+
+                }
+                else
+                {
+                    _objResponseModel.ReceiveMoneyList = result_Rec_Money;
+                    _objResponseModel.SendMoneyList = result_Send_Money;
+
+                    _objResponseModel.StatusCode = 0;
+                    _objResponseModel.ErrorDescription = "Successful Data Load";
+                    _objResponseModel.APIVersion = "0.1";
+                }
+                return Created("Result", _objResponseModel);
+            }
+            catch (Exception ex)
+            {
+                string errorDescription_ = ex.Message.ToString();
+                _objResponseModel.ReceiveMoneyList = "";
+                _objResponseModel.SendMoneyList = "";
+                _objResponseModel.StatusCode = 1;
+                _objResponseModel.ErrorDescription = errorDescription_;
+                _objResponseModel.APIVersion = "0.1";
+                return Created("Result", _objResponseModel);
+            }
+
+
+        }
+
+
+        // TransactionStatus_TransactionList_byCusID  //For Transaction Status of Web Site
+        [Authorize]
+        [HttpGet("{id:int}/TxnID")]
+        public async Task<IActionResult> TransactionStatus_TransactionList_byCusID(int id,int TxnID)
+        {
+            string hash = Request.Headers["x-hash"].ToString(); // Check if the hash is valid
+
+            objTransactionStatusTxnList _objResponseModel = new objTransactionStatusTxnList();
+            try
+            {
+                var TransactionStatusTxnList = await transactionDetailRepository.TransactionStatus_TransactionList_byCusID(id);
+
+                if (TransactionStatusTxnList.Count == 0)
+                {
+                    _objResponseModel.TransactionStatus_TransactionListModel = TransactionStatusTxnList;
+                    _objResponseModel.StatusCode = 1;
+                    _objResponseModel.ErrorDescription = "Successful Data Load- No Data found";
+                    _objResponseModel.APIVersion = "0.1";
+
+                }
+                else
+                {
+                    _objResponseModel.TransactionStatus_TransactionListModel = TransactionStatusTxnList;
+                    _objResponseModel.StatusCode = 0;
+                    _objResponseModel.ErrorDescription = "Successful Data Load";
+                    _objResponseModel.APIVersion = "0.1";
+                }
+                return Created("Result", _objResponseModel);
+            }
+            catch (Exception ex)
+            {
+                string errorDescription_ = ex.Message.ToString();
+                _objResponseModel.TransactionStatus_TransactionListModel = "";
+                _objResponseModel.StatusCode = 1;
+                _objResponseModel.ErrorDescription = errorDescription_;
+                _objResponseModel.APIVersion = "0.1";
+                return Created("Result", _objResponseModel);
+            }
+
+
+        }
+
+
+        // TransactionStatus_TransactionDetail_byTxnID  //For Transaction Status of Selection of single Txn
+        [Authorize]
+        [HttpGet("{TxnID:int}/CusID/MobNo")]
+        public async Task<IActionResult> TransactionStatus_TransactionDetail_byTxnID(int TxnID, int CusID, int MobNo)
+        {
+            string hash = Request.Headers["x-hash"].ToString(); // Check if the hash is valid
+
+            objTransactionStatusTxnDetailbyTxnID _objResponseModel = new objTransactionStatusTxnDetailbyTxnID();
+            try
+            {
+                var TransactionStatusTxnDetail = await transactionDetailRepository.TransactionStatus_TransactionDetail_byTxnID(CusID,TxnID);
+
+                if (TransactionStatusTxnDetail == null)
+                {
+                    _objResponseModel.TransactionStatus_TransactionbyTxnIDModel = TransactionStatusTxnDetail;
+                    _objResponseModel.StatusCode = 1;
+                    _objResponseModel.ErrorDescription = "Successful Data Load- No Data found";
+                    _objResponseModel.APIVersion = "0.1";
+
+                }
+                else
+                {
+                    _objResponseModel.TransactionStatus_TransactionbyTxnIDModel = TransactionStatusTxnDetail;
+                    _objResponseModel.StatusCode = 0;
+                    _objResponseModel.ErrorDescription = "Successful Data Load";
+                    _objResponseModel.APIVersion = "0.1";
+                }
+                return Created("Result", _objResponseModel);
+            }
+            catch (Exception ex)
+            {
+                string errorDescription_ = ex.Message.ToString();
+                _objResponseModel.TransactionStatus_TransactionbyTxnIDModel = "";
+                _objResponseModel.StatusCode = 1;
+                _objResponseModel.ErrorDescription = errorDescription_;
+                _objResponseModel.APIVersion = "0.1";
+                return Created("Result", _objResponseModel);
+            }
+
+
+        }
+
+
+
+
+
+
+    }
+}
